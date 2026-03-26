@@ -1,0 +1,24 @@
+# ── Laravel ──────────────────────────────────────────────
+backend/vendor/
+backend/node_modules/
+backend/.env
+backend/storage/logs/*.log
+backend/storage/framework/cache/
+backend/storage/framework/sessions/
+backend/storage/framework/views/
+backend/bootstrap/cache/*.php
+backend/.phpunit.result.cache
+backend/public/hot
+backend/public/storage
+
+# ── Python ────────────────────────────────────────────────
+ml-service/__pycache__/
+ml-service/*.pyc
+ml-service/model/risk_model.pkl
+ml-service/venv/
+ml-service/.env
+
+# ── General ───────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.log
