@@ -5,6 +5,7 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GradeController;
+use App\Http\Controllers\ImportController;
 use App\Http\Controllers\PredictionController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\StudentController;
@@ -30,6 +31,9 @@ Route::middleware(['auth', 'role:estudiante'])->group(function () {
 
 // --- DOCENTE ---
 Route::middleware(['auth', 'role:docente'])->group(function () {
+    Route::get('/importar/calificaciones', [ImportController::class, 'gradesForm'])->name('import.grades');
+    Route::post('/importar/calificaciones', [ImportController::class, 'gradesImport'])->name('import.grades.post');
+    Route::get('/importar/calificaciones/plantilla', [ImportController::class, 'gradesTemplate'])->name('import.grades.template');
     Route::get('/calificaciones', [GradeController::class, 'index'])->name('calificaciones.index');
     Route::post('/calificaciones', [GradeController::class, 'store'])->name('calificaciones.store');
     Route::post('/calificaciones/lote', [GradeController::class, 'bulkStore'])->name('calificaciones.bulk');
@@ -67,6 +71,9 @@ Route::middleware(['auth', 'role:coordinador'])->group(function () {
 
 // --- ADMIN ---
 Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/importar/alumnos', [ImportController::class, 'studentsForm'])->name('import.students');
+    Route::post('/importar/alumnos', [ImportController::class, 'studentsImport'])->name('import.students.post');
+    Route::get('/importar/alumnos/plantilla', [ImportController::class, 'studentsTemplate'])->name('import.students.template');
     Route::resource('usuarios', UserController::class);
     Route::resource('estudiantes', StudentController::class);
     Route::get('/predicciones', [PredictionController::class, 'index'])->name('predicciones.index');

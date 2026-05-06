@@ -120,6 +120,9 @@
             <a href="{{ route('asistencia.index') }}" class="nav-link">
                 <i class="bi bi-person-check me-2"></i> Asistencia
             </a>
+            <a href="{{ route('import.grades') }}" class="nav-link {{ request()->routeIs('import.grades*') ? 'active' : '' }}">
+                <i class="bi bi-file-earmark-arrow-up me-2"></i> Importar CSV/Excel
+            </a>
             <a href="{{ route('alertas.docente') }}" class="nav-link">
                 <i class="bi bi-exclamation-triangle me-2"></i> Alertas
             </a>
@@ -158,6 +161,9 @@
             </a>
             <a href="{{ route('estudiantes.index') }}" class="nav-link">
                 <i class="bi bi-person-vcard me-2"></i> Estudiantes
+            </a>
+            <a href="{{ route('import.students') }}" class="nav-link {{ request()->routeIs('import.students*') ? 'active' : '' }}">
+                <i class="bi bi-file-earmark-arrow-up me-2"></i> Importar Alumnos
             </a>
             <a href="{{ route('predicciones.index') }}" class="nav-link">
                 <i class="bi bi-cpu me-2"></i> Predicciones

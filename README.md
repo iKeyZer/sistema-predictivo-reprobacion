@@ -12,6 +12,8 @@ Sistema web para predecir el riesgo de reprobación de estudiantes de la carrera
 - **Registro de tutorías** vinculadas a alertas activas
 - **Reportes institucionales** con exportación a PDF
 - **Microservicio ML** con Random Forest + fallback heurístico
+- **Importación de datos** desde CSV/Excel (calificaciones, asistencia y alumnos)
+- **Acceso remoto** vía Cloudflare Tunnel sin configuración de red
 
 ## Stack
 
@@ -94,6 +96,64 @@ python app.py
 
 Accede en: **http://127.0.0.1:8000**
 
+> El archivo `iniciar.bat` inicia los tres servicios automáticamente con doble clic. Si `cloudflared.exe` está en la raíz del proyecto, también levanta el túnel remoto.
+
+---
+
+## Acceso remoto con Cloudflare Tunnel (opcional, gratis)
+
+Para acceder al sistema desde cualquier lugar sin configurar el router:
+
+1. Descarga [`cloudflared.exe`](https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe)
+2. Colócalo en la raíz del proyecto (junto a `iniciar.bat`)
+3. Ejecuta `iniciar.bat` — el túnel se inicia automáticamente
+
+La URL pública aparece en la ventana **"Cloudflare Tunnel"**:
+```
+https://abc-def-123.trycloudflare.com
+```
+
+> La URL cambia cada vez que se reinicia el sistema. Para URL fija se requiere cuenta Cloudflare gratuita.
+
+Si hay error de DNS al conectar, añade el flag `--protocol http2`:
+```bat
+cloudflared tunnel --url http://localhost:8000 --protocol http2
+```
+
+---
+
+## Importación de datos desde Excel / CSV
+
+### Docente — Calificaciones y Asistencia
+
+Menú lateral → **Importar CSV/Excel**. Selecciona el grupo y sube el archivo con las columnas:
+
+| Columna | Requerida | Descripción |
+|---------|-----------|-------------|
+| `numero_control` | Sí | Número de control del alumno |
+| `parcial_1` | No | Calificación parcial 1 (0–100) |
+| `parcial_2` | No | Calificación parcial 2 (0–100) |
+| `parcial_3` | No | Calificación parcial 3 (0–100) |
+| `total_clases` | No | Total de clases impartidas |
+| `clases_asistidas` | No | Clases a las que asistió el alumno |
+
+### Admin — Alumnos en lote
+
+Menú lateral → **Importar Alumnos**. Columnas del archivo:
+
+| Columna | Requerida | Descripción |
+|---------|-----------|-------------|
+| `numero_control` | Sí | Número de control único |
+| `nombre` | Sí | Nombre(s) del alumno |
+| `apellidos` | No | Apellidos |
+| `email` | No | Si se omite se genera `nc@itsc.edu.mx` |
+| `carrera` | No | Clave de carrera (default: ISC) |
+| `semestre` | No | Semestre actual (default: 1) |
+
+La contraseña por defecto de alumnos importados es su número de control.
+
+Archivos de ejemplo en la carpeta [`ejemplos/`](ejemplos/).
+
 ---
 
 ## Usuarios demo
@@ -129,7 +189,11 @@ sistema-predictivo-reprobacion/
 │   ├── app.py                # API REST (predict, train, health)
 │   ├── train.py              # Random Forest Classifier
 │   └── requirements.txt
-└── iniciar.bat               # Lanzador del sistema (Windows)
+├── ejemplos/                 # Archivos CSV de prueba para importación
+│   ├── calificaciones_prueba.csv
+│   └── alumnos_prueba.csv
+├── iniciar.bat               # Lanzador del sistema (Windows)
+└── cloudflared.exe           # Tunnel Cloudflare (descargar por separado)
 ```
 
 ## Roles del sistema
