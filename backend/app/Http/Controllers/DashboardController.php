@@ -57,17 +57,21 @@ class DashboardController extends Controller
             ->where('teacher_id', $teacher?->id)
             ->get();
 
-        $riskStats = [
-            'alto'  => RiskPrediction::whereIn('enrollment_id',
-                Enrollment::whereIn('group_id', $groups->pluck('id'))->pluck('id')
-            )->where('risk_level', 'alto')->count(),
-            'medio' => RiskPrediction::whereIn('enrollment_id',
-                Enrollment::whereIn('group_id', $groups->pluck('id'))->pluck('id')
-            )->where('risk_level', 'medio')->count(),
-            'bajo'  => RiskPrediction::whereIn('enrollment_id',
-                Enrollment::whereIn('group_id', $groups->pluck('id'))->pluck('id')
-            )->where('risk_level', 'bajo')->count(),
-        ];
+        $enrollmentIds = Enrollment::whereIn('group_id', $groups->pluck('id'))->pluck('id');
+
+        // Only count the latest prediction per enrollment to avoid inflated numbers
+        $latestPredictionIds = RiskPrediction::whereIn('enrollment_id', $enrollmentIds)
+            ->selectRaw('MAX(id) as id')
+            ->groupBy('enrollment_id')
+            ->pluck('id');
+
+        $riskStats = RiskPrediction::whereIn('id', $latestPredictionIds)
+            ->selectRaw('risk_level, count(*) as total')
+            ->groupBy('risk_level')
+            ->pluck('total', 'risk_level')
+            ->toArray();
+
+        $riskStats = array_merge(['alto' => 0, 'medio' => 0, 'bajo' => 0], $riskStats);
 
         return view('dashboard.teacher', compact('teacher', 'groups', 'riskStats'));
     }

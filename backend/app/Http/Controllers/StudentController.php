@@ -14,9 +14,11 @@ class StudentController extends Controller
     public function index(Request $request)
     {
         $query = Student::with('user')
-            ->when($request->search, fn($q) => $q->whereHas('user', fn($u) =>
-                $u->where('name', 'like', "%{$request->search}%")
-            )->orWhere('control_number', 'like', "%{$request->search}%"))
+            ->when($request->search, fn($q) => $q->where(fn($inner) =>
+                $inner->whereHas('user', fn($u) =>
+                    $u->where('name', 'like', "%{$request->search}%")
+                )->orWhere('control_number', 'like', "%{$request->search}%")
+            ))
             ->when($request->semester, fn($q) => $q->where('semester', $request->semester))
             ->when($request->status, fn($q) => $q->where('status', $request->status));
 
@@ -131,8 +133,10 @@ class StudentController extends Controller
     public function assigned()
     {
         $students = Student::with(['user', 'enrollments.latestPrediction', 'alerts'])
-            ->whereHas('alerts', fn($q) => $q->where('status', 'activa'))
-            ->orWhereHas('enrollments.riskPredictions', fn($q) => $q->whereIn('risk_level', ['alto', 'medio']))
+            ->where(fn($q) =>
+                $q->whereHas('alerts', fn($a) => $a->where('status', 'activa'))
+                  ->orWhereHas('enrollments.riskPredictions', fn($r) => $r->whereIn('risk_level', ['alto', 'medio']))
+            )
             ->get();
 
         return view('students.assigned', compact('students'));

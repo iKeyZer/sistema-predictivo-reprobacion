@@ -45,11 +45,12 @@ class AttendanceController extends Controller
 
         // Check attendance alerts for each enrollment
         $enrollmentIds = array_keys($request->attendance);
-        foreach ($enrollmentIds as $enrollmentId) {
-            $enrollment = Enrollment::find($enrollmentId);
-            if ($enrollment) {
-                $this->alertService->generateAttendanceAlert($enrollment);
-            }
+        $enrollments = Enrollment::with(['student.user', 'group.subject', 'group.teacher', 'latestPrediction', 'attendance'])
+            ->whereIn('id', $enrollmentIds)
+            ->get();
+
+        foreach ($enrollments as $enrollment) {
+            $this->alertService->generateAttendanceAlert($enrollment);
         }
 
         AuditLog::record('attendance.register', null, ['group_id' => $request->group_id, 'date' => $request->date]);

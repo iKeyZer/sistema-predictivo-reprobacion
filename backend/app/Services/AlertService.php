@@ -10,13 +10,22 @@ class AlertService
 {
     public function generateFromPrediction(RiskPrediction $prediction): ?AcademicAlert
     {
-        $enrollment = $prediction->enrollment()->with(['group.subject', 'group.teacher.user', 'student'])->first();
+        $enrollment = $prediction->enrollment()->with(['group.subject', 'group.teacher.user', 'student.user'])->first();
 
         if (!in_array($prediction->risk_level, ['alto', 'medio'])) {
             return null;
         }
 
         $type = $prediction->risk_level === 'alto' ? 'riesgo_alto' : 'riesgo_medio';
+
+        // Avoid duplicate active alerts of the same type for the same student
+        $exists = AcademicAlert::where('student_id', $enrollment->student_id)
+            ->where('type', $type)
+            ->where('status', 'activa')
+            ->exists();
+
+        if ($exists) return null;
+
         $studentName = $enrollment->student->user->name;
         $subjectName = $enrollment->group->subject->name;
 
@@ -35,11 +44,21 @@ class AlertService
 
     public function generateAttendanceAlert(Enrollment $enrollment): ?AcademicAlert
     {
+        $enrollment->loadMissing(['student.user', 'group.subject', 'group.teacher', 'latestPrediction']);
+
         $attendancePct = $enrollment->getAttendancePercentage();
         if ($attendancePct >= 80) return null;
 
         $latestPrediction = $enrollment->latestPrediction;
         if (!$latestPrediction) return null;
+
+        // Avoid duplicate active attendance alerts for the same student
+        $exists = AcademicAlert::where('student_id', $enrollment->student_id)
+            ->where('type', 'asistencia')
+            ->where('status', 'activa')
+            ->exists();
+
+        if ($exists) return null;
 
         $studentName = $enrollment->student->user->name;
         $subjectName = $enrollment->group->subject->name;
